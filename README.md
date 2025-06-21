@@ -85,3 +85,5 @@ This project is provided as-is for educational and personal use.
 
 For issues, questions, or contributions, please visit the [GitHub repository](https://github.com/Suryanandx/gemini-watermark-cleaner).
 
+
+<!-- Updated Thu Dec 18 20:33:24 IST 2025 -->
