@@ -301,3 +301,5 @@ For issues, questions, or contributions, please visit the [GitHub repository](ht
 <!-- Day 5, commit 3 -->
 
 <!-- Day 6, commit 1 -->
+
+<!-- Day 6, commit 2 -->
