@@ -175,3 +175,5 @@ For issues, questions, or contributions, please visit the [GitHub repository](ht
 <!-- Day 2, commit 3 -->
 
 <!-- Day 3, commit 1 -->
+
+<!-- Day 3, commit 2 -->
