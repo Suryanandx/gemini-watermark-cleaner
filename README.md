@@ -169,3 +169,5 @@ For issues, questions, or contributions, please visit the [GitHub repository](ht
 <!-- Day 1, commit 3 -->
 
 <!-- Day 2, commit 1 -->
+
+<!-- Day 2, commit 2 -->
