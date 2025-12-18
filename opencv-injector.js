@@ -50,7 +50,10 @@ async function initializeOpenCV() {
   
   if (window.trustedTypes && window.trustedTypes.createPolicy) {
     try {
-      window.trustedTypes.createPolicy('default', {
+      if (window.trustedTypes.defaultPolicy) {
+        console.log('Trusted Types default policy already exists, skipping creation');
+      } else {
+        window.trustedTypes.createPolicy('default', {
         createScriptURL: (url) => {
           if (url.startsWith('chrome-extension://') || url.startsWith('blob:')) {
             return url;
@@ -65,7 +68,8 @@ async function initializeOpenCV() {
           return html;
         }
       });
-      console.log('Trusted Types default policy created for OpenCV');
+        console.log('Trusted Types default policy created for OpenCV');
+      }
     } catch (e) {
       console.warn('Could not create default Trusted Types policy:', e);
     }

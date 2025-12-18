@@ -38,12 +38,21 @@
       try {
         const blob = new Blob([buffer]);
         bitmap = await createImageBitmap(blob);
-        const canvas = new OffscreenCanvas(bitmap.width, bitmap.height);
-        const ctx = canvas.getContext('2d');
+        
+        let canvas, ctx;
+        if (typeof OffscreenCanvas !== 'undefined') {
+          canvas = new OffscreenCanvas(bitmap.width, bitmap.height);
+          ctx = canvas.getContext('2d');
+        } else {
+          canvas = document.createElement('canvas');
+          canvas.width = bitmap.width;
+          canvas.height = bitmap.height;
+          ctx = canvas.getContext('2d');
+        }
         
         if (!ctx) {
           if (bitmap) bitmap.close();
-          throw new Error('Failed to get OffscreenCanvas 2D context');
+          throw new Error('Failed to get canvas 2D context');
         }
         
         ctx.drawImage(bitmap, 0, 0);
@@ -69,21 +78,40 @@
       quality = quality || 0.95;
       
       try {
-        const canvas = new OffscreenCanvas(imageData.width, imageData.height);
+        let canvas;
+        if (typeof OffscreenCanvas !== 'undefined') {
+          canvas = new OffscreenCanvas(imageData.width, imageData.height);
+        } else {
+          canvas = document.createElement('canvas');
+          canvas.width = imageData.width;
+          canvas.height = imageData.height;
+        }
+        
         const ctx = canvas.getContext('2d');
         
         if (!ctx) {
-          throw new Error('Failed to get OffscreenCanvas 2D context');
+          throw new Error('Failed to get canvas 2D context');
         }
         
         ctx.putImageData(imageData, 0, 0);
         
-        const blob = await canvas.convertToBlob({
-          type: type,
-          quality: quality
-        });
-        
-        return blob;
+        if (typeof OffscreenCanvas !== 'undefined' && canvas instanceof OffscreenCanvas) {
+          const blob = await canvas.convertToBlob({
+            type: type,
+            quality: quality
+          });
+          return blob;
+        } else {
+          return new Promise((resolve, reject) => {
+            canvas.toBlob((blob) => {
+              if (blob) {
+                resolve(blob);
+              } else {
+                reject(new Error('Failed to convert canvas to blob'));
+              }
+            }, type, quality);
+          });
+        }
       } catch (error) {
         throw new Error('ImageData to Blob conversion failed: ' + error);
       }
@@ -203,8 +231,12 @@
     outputQuality: 0.95,
     enabled: true,
     verbose: false,
-    interceptorEnabled: true
+    interceptorEnabled: true,
+    maxImageSize: 10 * 1024 * 1024
   };
+
+  const imageCache = new Map();
+  const MAX_CACHE_SIZE = 50;
 
   let globalConfig = Object.assign({}, defaultConfig);
   let originalFetch;
@@ -219,6 +251,12 @@
       
       if (!config.enabled) {
         utils.logger.info('Image processing disabled, returning original response');
+        return response;
+      }
+
+      const contentLength = response.headers.get('content-length');
+      if (contentLength && parseInt(contentLength) > config.maxImageSize) {
+        utils.logger.warn('Image too large (' + contentLength + ' bytes), skipping processing');
         return response;
       }
 
@@ -254,6 +292,18 @@
       } catch (bufferError) {
         utils.logger.error('Failed to get array buffer:', bufferError);
         return response;
+      }
+      
+      if (arrayBuffer.byteLength > config.maxImageSize) {
+        utils.logger.warn('Image too large (' + arrayBuffer.byteLength + ' bytes), skipping processing');
+        return response;
+      }
+      
+      const urlString = typeof response.url === 'string' ? response.url : response.url || 'unknown';
+      if (imageCache.has(urlString)) {
+        utils.logger.info('Using cached processed image');
+        const cachedBlob = imageCache.get(urlString);
+        return utils.createResponseFromBlob(cachedBlob, response);
       }
       
       utils.logger.info('Image data retrieved, size: ' + arrayBuffer.byteLength + ' bytes');
@@ -305,6 +355,13 @@
       );
       
       utils.logger.info('Processed image size: ' + processedBlob.size + ' bytes');
+      
+      const urlString = typeof originalResponse.url === 'string' ? originalResponse.url : originalResponse.url || 'unknown';
+      if (imageCache.size >= MAX_CACHE_SIZE) {
+        const firstKey = imageCache.keys().next().value;
+        imageCache.delete(firstKey);
+      }
+      imageCache.set(urlString, processedBlob);
       
       return utils.createResponseFromBlob(processedBlob, originalResponse);
       
