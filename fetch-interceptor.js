@@ -1,14 +1,14 @@
 /**
- * Fetch 拦截器 - 纯 JavaScript 版本
- * 这个文件会被注入到 Gemini 页面的上下文中
+ * Fetch Interceptor - Pure JavaScript version
+ * This file will be injected into Gemini page context
  */
 
 (function() {
   'use strict';
   
-  console.log('[Fetch Interceptor] 开始初始化 Fetch 拦截器');
+  console.log('[Fetch Interceptor] Starting Fetch interceptor initialization');
   
-  // 工具函数
+  // Utility functions
   const utils = {
     shouldProcessImage: function(url, response) {
       try {
@@ -34,7 +34,7 @@
         
         return isGoogleImage && isImage;
       } catch (error) {
-        console.warn('[Fetch Interceptor] 检查图片请求时出错:', error);
+        console.warn('[Fetch Interceptor] Error checking image request:', error);
         return false;
       }
     },
@@ -47,7 +47,7 @@
         const ctx = canvas.getContext('2d');
         
         if (!ctx) {
-          throw new Error('无法获取 OffscreenCanvas 2D 上下文');
+          throw new Error('Failed to get OffscreenCanvas 2D context');
         }
         
         ctx.drawImage(bitmap, 0, 0);
@@ -57,7 +57,7 @@
         
         return imageData;
       } catch (error) {
-        throw new Error('ArrayBuffer 转 ImageData 失败: ' + error);
+        throw new Error('ArrayBuffer to ImageData conversion failed: ' + error);
       }
     },
 
@@ -70,7 +70,7 @@
         const ctx = canvas.getContext('2d');
         
         if (!ctx) {
-          throw new Error('无法获取 OffscreenCanvas 2D 上下文');
+          throw new Error('Failed to get OffscreenCanvas 2D context');
         }
         
         ctx.putImageData(imageData, 0, 0);
@@ -82,7 +82,7 @@
         
         return blob;
       } catch (error) {
-        throw new Error('ImageData 转 Blob 失败: ' + error);
+        throw new Error('ImageData to Blob conversion failed: ' + error);
       }
     },
 
@@ -114,30 +114,30 @@
     },
 
     waitForOpenCV: function(timeout) {
-      timeout = timeout || 10000; // 默认10秒超时
+      timeout = timeout || 10000; // Default 10 second timeout
       
       return new Promise(function(resolve, reject) {
         const startTime = Date.now();
         
         function checkOpenCV() {
           if (utils.isOpenCVReady()) {
-            utils.logger.info('OpenCV 检测成功');
+            utils.logger.info('OpenCV detection successful');
             resolve(true);
             return;
           }
           
           const elapsed = Date.now() - startTime;
           if (elapsed >= timeout) {
-            utils.logger.warn('OpenCV 检测超时 (' + timeout + 'ms)');
-            reject(new Error('OpenCV 检测超时'));
+            utils.logger.warn('OpenCV detection timeout (' + timeout + 'ms)');
+            reject(new Error('OpenCV detection timeout'));
             return;
           }
           
-          // 使用 requestAnimationFrame 进行下一次检测
+          // Use requestAnimationFrame for next check
           requestAnimationFrame(checkOpenCV);
         }
         
-        // 开始检测
+        // Start detection
         checkOpenCV();
       });
     },
@@ -147,7 +147,7 @@
         promise,
         new Promise(function(_, reject) {
           setTimeout(function() {
-            reject(new Error('操作超时 (' + timeout + 'ms)'));
+            reject(new Error('Operation timeout (' + timeout + 'ms)'));
           }, timeout);
         })
       ]);
@@ -156,20 +156,20 @@
     logger: {
       info: function(message) {
         var args = Array.prototype.slice.call(arguments, 1);
-        console.log.apply(console, ['[Gemini水印清理] ' + message].concat(args));
+        console.log.apply(console, ['[Gemini Watermark Cleaner] ' + message].concat(args));
       },
       warn: function(message) {
         var args = Array.prototype.slice.call(arguments, 1);
-        console.warn.apply(console, ['[Gemini水印清理] ' + message].concat(args));
+        console.warn.apply(console, ['[Gemini Watermark Cleaner] ' + message].concat(args));
       },
       error: function(message) {
         var args = Array.prototype.slice.call(arguments, 1);
-        console.error.apply(console, ['[Gemini水印清理] ' + message].concat(args));
+        console.error.apply(console, ['[Gemini Watermark Cleaner] ' + message].concat(args));
       }
     }
   };
 
-  // 默认配置
+  // Default configuration
   const defaultConfig = {
     timeout: 30000,
     outputFormat: 'image/png',
@@ -183,29 +183,29 @@
   let originalFetch;
   let isInterceptorActive = false;
 
-  // 图片处理器
+  // Image processor
   async function processImageResponse(response, config) {
     config = config || defaultConfig;
     const startTime = performance.now();
     
     try {
-      utils.logger.info('开始处理图片响应');
+      utils.logger.info('Starting image response processing');
       
       if (!config.enabled) {
-        utils.logger.info('图片处理已禁用，返回原始响应');
+        utils.logger.info('Image processing disabled, returning original response');
         return response;
       }
 
-      // 异步等待 OpenCV 就绪
+      // Asynchronously wait for OpenCV to be ready
       try {
-        await utils.waitForOpenCV(10000); // 10秒超时
+        await utils.waitForOpenCV(10000); // 10 second timeout
       } catch (error) {
-        utils.logger.warn('OpenCV 未就绪，返回原始响应:', error.message);
+        utils.logger.warn('OpenCV not ready, returning original response:', error.message);
         return response;
       }
       
       if (!window.runWatermarkPipeline) {
-        utils.logger.warn('水印处理管道未找到，返回原始响应');
+        utils.logger.warn('Watermark processing pipeline not found, returning original response');
         return response;
       }
       
@@ -216,60 +216,60 @@
         config.timeout
       );
       
-      utils.logger.info('获取到图片数据，大小: ' + arrayBuffer.byteLength + ' 字节');
+      utils.logger.info('Image data retrieved, size: ' + arrayBuffer.byteLength + ' bytes');
       
       try {
         const processedResponse = await processImageData(arrayBuffer, response, config);
         const processingTime = performance.now() - startTime;
-        utils.logger.info('图片处理完成，耗时: ' + processingTime.toFixed(2) + 'ms');
+        utils.logger.info('Image processing completed, time: ' + processingTime.toFixed(2) + 'ms');
         return processedResponse;
       } catch (error) {
-        utils.logger.warn('图片处理失败，使用原始数据:', error);
+        utils.logger.warn('Image processing failed, using original data:', error);
         return utils.createResponseFromArrayBuffer(arrayBuffer, response);
       }
       
     } catch (error) {
       const processingTime = performance.now() - startTime;
-      utils.logger.error('图片处理异常，耗时: ' + processingTime.toFixed(2) + 'ms', error);
+      utils.logger.error('Image processing exception, time: ' + processingTime.toFixed(2) + 'ms', error);
       return response;
     }
   }
 
   async function processImageData(arrayBuffer, originalResponse, config) {
     try {
-      utils.logger.info('转换 ArrayBuffer 为 ImageData');
+      utils.logger.info('Converting ArrayBuffer to ImageData');
       const imageData = await utils.arrayBufferToImageData(arrayBuffer);
       
-      utils.logger.info('图片尺寸: ' + imageData.width + 'x' + imageData.height);
+      utils.logger.info('Image dimensions: ' + imageData.width + 'x' + imageData.height);
       
-      utils.logger.info('调用水印处理管道');
+      utils.logger.info('Calling watermark processing pipeline');
       const cv = window.cv;
       const result = window.runWatermarkPipeline(cv, imageData);
       
       if (!result || !result.result) {
-        throw new Error('水印处理管道返回无效结果');
+        throw new Error('Watermark processing pipeline returned invalid result');
       }
       
-      utils.logger.info('水印处理完成，置信度: ' + (result.confidence || 'N/A'));
+      utils.logger.info('Watermark processing completed, confidence: ' + (result.confidence || 'N/A'));
       
-      utils.logger.info('转换处理结果为 Blob');
+      utils.logger.info('Converting processed result to Blob');
       const processedBlob = await utils.imageDataToBlob(
         result.result,
         config.outputFormat,
         config.outputQuality
       );
       
-      utils.logger.info('处理后图片大小: ' + processedBlob.size + ' 字节');
+      utils.logger.info('Processed image size: ' + processedBlob.size + ' bytes');
       
       return utils.createResponseFromBlob(processedBlob, originalResponse);
       
     } catch (error) {
-      utils.logger.error('图片数据处理失败:', error);
+      utils.logger.error('Image data processing failed:', error);
       throw error;
     }
   }
 
-  // 创建被拦截的 fetch 函数
+  // Create intercepted fetch function
   function createInterceptedFetch() {
     return async function interceptedFetch(input, init) {
       try {
@@ -280,7 +280,7 @@
             const urlString = typeof input === 'string' ? input : 
                             input instanceof URL ? input.href :
                             input instanceof Request ? input.url : 'unknown';
-            utils.logger.info('检测到图片请求，开始处理:', urlString);
+            utils.logger.info('Image request detected, starting processing:', urlString);
           }
           
           return await processImageResponse(response, globalConfig);
@@ -289,31 +289,31 @@
         return response;
         
       } catch (error) {
-        utils.logger.error('Fetch 拦截器处理错误:', error);
+        utils.logger.error('Fetch interceptor processing error:', error);
         
         try {
           return await originalFetch.call(this, input, init);
         } catch (originalError) {
-          utils.logger.error('原始 fetch 也失败:', originalError);
+          utils.logger.error('Original fetch also failed:', originalError);
           throw originalError;
         }
       }
     };
   }
 
-  // 安装拦截器
+  // Install interceptor
   function installFetchInterceptor(config) {
     config = config || {};
     
     if (isInterceptorActive) {
-      utils.logger.warn('Fetch 拦截器已经安装');
+      utils.logger.warn('Fetch interceptor already installed');
       return;
     }
     
     globalConfig = Object.assign({}, defaultConfig, config);
     
     if (!globalConfig.interceptorEnabled) {
-      utils.logger.info('Fetch 拦截器已禁用');
+      utils.logger.info('Fetch interceptor disabled');
       return;
     }
     
@@ -321,29 +321,29 @@
     window.fetch = createInterceptedFetch();
     
     isInterceptorActive = true;
-    utils.logger.info('Fetch 拦截器安装成功');
+    utils.logger.info('Fetch interceptor installed successfully');
   }
 
-  // 卸载拦截器
+  // Uninstall interceptor
   function uninstallFetchInterceptor() {
     if (!isInterceptorActive || !originalFetch) {
-      utils.logger.warn('Fetch 拦截器未安装或已卸载');
+      utils.logger.warn('Fetch interceptor not installed or already uninstalled');
       return;
     }
     
     window.fetch = originalFetch;
     isInterceptorActive = false;
     
-    utils.logger.info('Fetch 拦截器已卸载');
+    utils.logger.info('Fetch interceptor uninstalled');
   }
 
-  // 更新配置
+  // Update configuration
   function updateInterceptorConfig(config) {
     globalConfig = Object.assign({}, globalConfig, config);
-    utils.logger.info('拦截器配置已更新', config);
+    utils.logger.info('Interceptor configuration updated', config);
   }
 
-  // 获取状态
+  // Get status
   function getInterceptorStatus() {
     return {
       active: isInterceptorActive,
@@ -351,12 +351,12 @@
     };
   }
 
-  // 设置拦截器
+  // Setup interceptor
   function setupInterceptor() {
-    utils.logger.info('初始化 Fetch 拦截器');
+    utils.logger.info('Initializing Fetch interceptor');
     
     document.addEventListener('opencvReady', function() {
-      utils.logger.info('OpenCV 已就绪，启用图片处理');
+      utils.logger.info('OpenCV ready, enabling image processing');
       updateInterceptorConfig({ enabled: true });
     });
     
@@ -370,7 +370,7 @@
     });
   }
 
-  // 初始化
+  // Initialize
   function initializeInterceptor() {
     if (document.readyState === 'loading') {
       document.addEventListener('DOMContentLoaded', setupInterceptor);
@@ -379,7 +379,7 @@
     }
   }
 
-  // 暴露全局接口
+  // Expose global interface
   window.geminiWatermarkCleaner = {
     installInterceptor: installFetchInterceptor,
     uninstallInterceptor: uninstallFetchInterceptor,
@@ -387,25 +387,25 @@
     getStatus: getInterceptorStatus
   };
 
-  utils.logger.info('全局接口已暴露: window.geminiWatermarkCleaner');
+  utils.logger.info('Global interface exposed: window.geminiWatermarkCleaner');
 
-  // 等待依赖项加载后初始化
+  // Wait for dependencies to load before initializing
   function waitForDependencies() {
     let checkCount = 0;
-    const maxChecks = 100; // 最多检查10秒
+    const maxChecks = 100; // Maximum 10 seconds of checks
     
     const checkDependencies = function() {
       checkCount++;
       
-      // 检查水印处理管道是否已加载
+      // Check if watermark processing pipeline is loaded
       if (window.runWatermarkPipeline) {
-        utils.logger.info('依赖项已加载，开始初始化拦截器');
+        utils.logger.info('Dependencies loaded, starting interceptor initialization');
         initializeInterceptor();
         return;
       }
       
       if (checkCount >= maxChecks) {
-        utils.logger.warn('等待依赖项超时，使用基础配置初始化');
+        utils.logger.warn('Dependency wait timeout, initializing with basic configuration');
         initializeInterceptor();
         return;
       }
@@ -416,7 +416,7 @@
     checkDependencies();
   }
 
-  // 启动
+  // Start
   waitForDependencies();
 
 })();
