@@ -138,8 +138,7 @@
 
     const roiRect = computeBottomRightRoiRect(cv, srcRgba.cols, srcRgba.rows, cfg)
     
-    const roiMat = track(srcRgba.roi(roiRect))
-    
+    const roiMat = srcRgba.roi(roiRect)
     const roiMask = detectWatermarkInROI(cv, roiMat, cfg, track)
     
     const fullMask = mapROIMaskToFullImage(cv, roiMask, imageSize, roiRect, track)

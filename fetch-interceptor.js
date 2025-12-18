@@ -34,13 +34,15 @@
     },
 
     arrayBufferToImageData: async function(buffer) {
+      let bitmap = null;
       try {
         const blob = new Blob([buffer]);
-        const bitmap = await createImageBitmap(blob);
+        bitmap = await createImageBitmap(blob);
         const canvas = new OffscreenCanvas(bitmap.width, bitmap.height);
         const ctx = canvas.getContext('2d');
         
         if (!ctx) {
+          if (bitmap) bitmap.close();
           throw new Error('Failed to get OffscreenCanvas 2D context');
         }
         
@@ -48,9 +50,16 @@
         const imageData = ctx.getImageData(0, 0, bitmap.width, bitmap.height);
         
         bitmap.close();
+        bitmap = null;
         
         return imageData;
       } catch (error) {
+        if (bitmap) {
+          try {
+            bitmap.close();
+          } catch (closeError) {
+          }
+        }
         throw new Error('ArrayBuffer to ImageData conversion failed: ' + error);
       }
     },
@@ -320,6 +329,11 @@
     if (isInterceptorActive) {
       utils.logger.warn('Fetch interceptor already installed');
       return;
+    }
+    
+    if (window.fetch && window.fetch !== originalFetch && originalFetch) {
+      utils.logger.warn('Another fetch interceptor detected, uninstalling previous one');
+      window.fetch = originalFetch;
     }
     
     globalConfig = Object.assign({}, defaultConfig, config);
