@@ -1,14 +1,307 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gemini Watermark Cleaner</title>
-    <meta name="manifest.type" content="browser_action">
-    <script type="module" crossorigin src="chunks/popup-DtMKoQbc.js"></script>
-    <link rel="stylesheet" crossorigin href="assets/popup-k3v1-_gH.css">
-  </head>
-  <body>
-    <div id="root"></div>
-  </body>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gemini Watermark Cleaner</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      width: 380px;
+      background: linear-gradient(135deg, #f5f7fa 0%, #ffffff 100%);
+      color: #1a1a1a;
+      line-height: 1.6;
+    }
+
+    .container {
+      padding: 24px;
+    }
+
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 20px;
+      padding-bottom: 20px;
+      border-bottom: 2px solid #e5e7eb;
+    }
+
+    .logo {
+      width: 48px;
+      height: 48px;
+      flex-shrink: 0;
+    }
+
+    .title-section {
+      flex: 1;
+    }
+
+    .title {
+      font-size: 20px;
+      font-weight: 700;
+      color: #111827;
+      margin-bottom: 4px;
+      letter-spacing: -0.5px;
+    }
+
+    .subtitle {
+      font-size: 13px;
+      color: #6b7280;
+      font-weight: 500;
+    }
+
+    .status {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      background: #d1fae5;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 600;
+      color: #065f46;
+      margin-top: 8px;
+    }
+
+    .status-dot {
+      width: 6px;
+      height: 6px;
+      background: #10b981;
+      border-radius: 50%;
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    .version {
+      font-size: 11px;
+      color: #9ca3af;
+      font-weight: 500;
+      margin-top: 4px;
+    }
+
+    .description {
+      background: white;
+      padding: 16px;
+      border-radius: 12px;
+      margin-bottom: 20px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      border: 1px solid #e5e7eb;
+    }
+
+    .description-text {
+      font-size: 14px;
+      color: #374151;
+      line-height: 1.6;
+    }
+
+    .features {
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      margin-bottom: 20px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      border: 1px solid #e5e7eb;
+    }
+
+    .features-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: #111827;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .feature-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .feature-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      font-size: 14px;
+      color: #374151;
+    }
+
+    .feature-icon {
+      width: 20px;
+      height: 20px;
+      flex-shrink: 0;
+      margin-top: 2px;
+      color: #667eea;
+    }
+
+    .usage {
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      margin-bottom: 20px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      border: 1px solid #e5e7eb;
+    }
+
+    .usage-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: #111827;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .usage-steps {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .usage-step {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      font-size: 14px;
+      color: #374151;
+    }
+
+    .step-number {
+      width: 24px;
+      height: 24px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 12px;
+      flex-shrink: 0;
+    }
+
+    .footer {
+      text-align: center;
+      padding-top: 16px;
+      border-top: 1px solid #e5e7eb;
+      margin-top: 20px;
+    }
+
+    .footer-text {
+      font-size: 12px;
+      color: #6b7280;
+      margin-bottom: 4px;
+    }
+
+    .footer-link {
+      color: #667eea;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 12px;
+    }
+
+    .footer-link:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <img src="logo.svg" alt="Gemini Watermark Cleaner" class="logo">
+      <div class="title-section">
+        <div class="title">Gemini Watermark Cleaner</div>
+        <div class="subtitle">Smart Image Watermark Cleaner</div>
+        <div class="status">
+          <span class="status-dot"></span>
+          Active
+        </div>
+        <div class="version">Version 1.0.1</div>
+      </div>
+    </div>
+
+    <div class="description">
+      <div class="description-text">
+        An intelligent browser extension designed for Google Gemini that automatically detects and removes watermarks from downloaded images, providing a seamless high-quality image experience.
+      </div>
+    </div>
+
+    <div class="features">
+      <div class="features-title">
+        <svg class="feature-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
+        Key Features
+      </div>
+      <ul class="feature-list">
+        <li class="feature-item">
+          <svg class="feature-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+          </svg>
+          <span><strong>Smart Detection</strong> - Automatically identifies watermarks in images</span>
+        </li>
+        <li class="feature-item">
+          <svg class="feature-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+          </svg>
+          <span><strong>High Quality</strong> - Preserves image quality while removing watermarks</span>
+        </li>
+        <li class="feature-item">
+          <svg class="feature-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+          </svg>
+          <span><strong>Fast Processing</strong> - Removes watermarks in milliseconds</span>
+        </li>
+        <li class="feature-item">
+          <svg class="feature-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+          </svg>
+          <span><strong>Privacy First</strong> - All processing happens locally on your device</span>
+        </li>
+      </ul>
+    </div>
+
+    <div class="usage">
+      <div class="usage-title">
+        <svg class="feature-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+        </svg>
+        How to Use
+      </div>
+      <ol class="usage-steps">
+        <li class="usage-step">
+          <div class="step-number">1</div>
+          <span>Visit <strong>gemini.google.com</strong> in your browser</span>
+        </li>
+        <li class="usage-step">
+          <div class="step-number">2</div>
+          <span>Browse and download images as you normally would</span>
+        </li>
+        <li class="usage-step">
+          <div class="step-number">3</div>
+          <span>Watermarks are automatically removed - enjoy clean images!</span>
+        </li>
+      </ol>
+    </div>
+
+    <div class="footer">
+      <div class="footer-text">Created by <strong>Suryanand</strong></div>
+      <a href="https://suryanand.com" target="_blank" class="footer-link">suryanand.com</a>
+    </div>
+  </div>
+</body>
 </html>
