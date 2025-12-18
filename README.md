@@ -1,0 +1,81 @@
+# Gemini Watermark Cleaner
+
+An intelligent browser extension designed specifically for Google Gemini that automatically detects and removes watermarks from downloaded images, providing a seamless watermark-free experience.
+
+## Features
+
+- **Automatic Watermark Detection**: Uses advanced computer vision algorithms to detect watermarks in images
+- **Intelligent Removal**: Precisely removes watermarks while preserving image quality
+- **Real-time Processing**: Processes images automatically as they are downloaded
+- **Optimized Performance**: Efficient ROI-based detection for fast processing
+- **Memory Efficient**: Proper resource management and cleanup
+
+## Installation
+
+1. Download or clone this repository
+2. Open Chrome and navigate to `chrome://extensions/`
+3. Enable "Developer mode" in the top right
+4. Click "Load unpacked" and select the extension directory
+5. The extension will be installed and ready to use
+
+## Usage
+
+1. Navigate to [Google Gemini](https://gemini.google.com)
+2. Download images as you normally would
+3. The extension will automatically process images and remove watermarks
+4. Processed images will be saved without watermarks
+
+## Technical Details
+
+### Architecture
+
+- **Content Script**: Injects processing scripts into Gemini pages
+- **OpenCV Integration**: Uses OpenCV.js (WASM) for image processing
+- **Fetch Interceptor**: Intercepts image requests and processes them
+- **Watermark Pipeline**: Advanced algorithm for watermark detection and removal
+
+### Processing Pipeline
+
+1. Detects watermarks in the bottom-right region of images (7% ROI)
+2. Uses adaptive thresholding and morphological operations
+3. Creates precise masks for watermark areas
+4. Applies inpainting algorithms to remove watermarks
+5. Returns processed images seamlessly
+
+### Performance
+
+- Maximum image size: 10MB
+- Minimum image size: 10x10 pixels
+- Maximum image dimensions: 10000x10000 pixels
+- Caching: Processed images are cached for faster subsequent loads
+
+## Browser Compatibility
+
+- Chrome (Manifest V3)
+- Edge (Chromium-based)
+- Other Chromium-based browsers
+
+## Requirements
+
+- Chrome/Edge browser with Manifest V3 support
+- No additional dependencies required
+
+## Development
+
+The extension uses:
+- OpenCV.js 4.12.0 (WASM)
+- Vanilla JavaScript (no frameworks)
+- Chrome Extension APIs
+
+## License
+
+This project is provided as-is for educational and personal use.
+
+## Attribution
+
+**By Suryanand - suryanand.com**
+
+---
+
+For issues, questions, or contributions, please refer to the repository.
+
