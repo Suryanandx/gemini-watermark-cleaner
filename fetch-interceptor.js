@@ -335,6 +335,20 @@
       utils.logger.info('Converting ArrayBuffer to ImageData');
       const imageData = await utils.arrayBufferToImageData(arrayBuffer);
       
+      if (!imageData || !imageData.data || imageData.width <= 0 || imageData.height <= 0) {
+        throw new Error('Invalid image data');
+      }
+      
+      if (imageData.width < 10 || imageData.height < 10) {
+        utils.logger.warn('Image too small (' + imageData.width + 'x' + imageData.height + '), skipping processing');
+        throw new Error('Image too small');
+      }
+      
+      if (imageData.width > 10000 || imageData.height > 10000) {
+        utils.logger.warn('Image too large (' + imageData.width + 'x' + imageData.height + '), skipping processing');
+        throw new Error('Image too large');
+      }
+      
       utils.logger.info('Image dimensions: ' + imageData.width + 'x' + imageData.height);
       
       utils.logger.info('Calling watermark processing pipeline');

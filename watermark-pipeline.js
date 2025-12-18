@@ -60,6 +60,9 @@
 }
 
   function computeBottomRightRoiRect(cv, width, height, cfg) {
+  if (width < 10 || height < 10) {
+    return new cv.Rect(Math.max(0, width - 1), Math.max(0, height - 1), Math.min(1, width), Math.min(1, height));
+  }
   const w = Math.max(1, Math.round((cfg.roiWidthPercent / 100) * width))
   const h = Math.max(1, Math.round((cfg.roiHeightPercent / 100) * height))
   const rightMargin = Math.round((cfg.rightMarginPercent / 100) * width)
