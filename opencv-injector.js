@@ -1,12 +1,18 @@
-function requestUrls() {
+function requestUrls(retryCount = 0) {
+  const maxRetries = 3;
+  const timeout = 5000;
+  
   return new Promise((resolve) => {
     let timeoutId = null;
+    let messageHandler = null;
     
     function handleMessage(event) {
       if (event.source !== window) return;
       
       if (event.data.type === 'OPENCV_URLS_RESPONSE') {
-        window.removeEventListener('message', handleMessage);
+        if (messageHandler) {
+          window.removeEventListener('message', messageHandler);
+        }
         if (timeoutId) {
           clearTimeout(timeoutId);
           timeoutId = null;
@@ -15,16 +21,27 @@ function requestUrls() {
       }
     }
     
-    window.addEventListener('message', handleMessage);
+    messageHandler = handleMessage;
+    window.addEventListener('message', messageHandler);
     
     window.postMessage({ type: 'GET_OPENCV_URLS' }, '*');
     
     timeoutId = setTimeout(() => {
-      window.removeEventListener('message', handleMessage);
-      console.error('Timeout waiting for OpenCV URLs');
+      if (messageHandler) {
+        window.removeEventListener('message', messageHandler);
+      }
       timeoutId = null;
-      resolve(null);
-    }, 5000);
+      
+      if (retryCount < maxRetries) {
+        console.warn('Timeout waiting for OpenCV URLs, retrying... (' + (retryCount + 1) + '/' + maxRetries + ')');
+        setTimeout(() => {
+          requestUrls(retryCount + 1).then(resolve);
+        }, 1000);
+      } else {
+        console.error('Timeout waiting for OpenCV URLs after ' + maxRetries + ' retries');
+        resolve(null);
+      }
+    }, timeout);
   });
 }
 
