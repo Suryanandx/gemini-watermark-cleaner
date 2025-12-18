@@ -1,0 +1,31 @@
+{
+  "name": "gemini-watermark-cleaner",
+  "version": "1.0.1",
+  "description": "An intelligent browser extension designed specifically for Google Gemini that automatically detects and removes watermarks from downloaded images",
+  "author": "Suryanand - suryanand.com",
+  "license": "MIT",
+  "homepage": "https://github.com/Suryanandx/gemini-watermark-cleaner",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Suryanandx/gemini-watermark-cleaner.git"
+  },
+  "scripts": {
+    "build": "echo 'Extension is already built. No build step required for vanilla JS extension.'",
+    "package": "zip -r gemini-watermark-cleaner-v1.0.1.zip . -x '*.git*' '*.zip' 'node_modules/*' '*.DS_Store'",
+    "validate": "node -e \"const fs=require('fs'); const m=JSON.parse(fs.readFileSync('manifest.json')); console.log('✓ Manifest valid:', m.name, m.version);\"",
+    "clean": "rm -f *.zip",
+    "prepublish": "npm run validate"
+  },
+  "keywords": [
+    "chrome-extension",
+    "gemini",
+    "watermark",
+    "image-processing",
+    "opencv",
+    "browser-extension"
+  ],
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}
+

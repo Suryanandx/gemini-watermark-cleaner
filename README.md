@@ -71,11 +71,17 @@ The extension uses:
 
 This project is provided as-is for educational and personal use.
 
-## Attribution
+## License
 
-**By Suryanand - suryanand.com**
+This project is provided as-is for educational and personal use.
+
+## Author & Support
+
+**Created by Suryanand**  
+🌐 Website: [suryanand.com](https://suryanand.com)  
+📧 GitHub: [@Suryanandx](https://github.com/Suryanandx)
 
 ---
 
-For issues, questions, or contributions, please refer to the repository.
+For issues, questions, or contributions, please visit the [GitHub repository](https://github.com/Suryanandx/gemini-watermark-cleaner).
 
