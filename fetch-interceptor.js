@@ -232,12 +232,29 @@
         return response;
       }
       
-      const responseClone = response.clone();
+      let responseClone;
+      let arrayBuffer;
       
-      const arrayBuffer = await utils.createTimeoutPromise(
-        responseClone.arrayBuffer(),
-        config.timeout
-      );
+      try {
+        if (response.bodyUsed) {
+          utils.logger.warn('Response body already consumed, cannot process');
+          return response;
+        }
+        responseClone = response.clone();
+      } catch (cloneError) {
+        utils.logger.warn('Cannot clone response, may not be cloneable:', cloneError);
+        return response;
+      }
+      
+      try {
+        arrayBuffer = await utils.createTimeoutPromise(
+          responseClone.arrayBuffer(),
+          config.timeout
+        );
+      } catch (bufferError) {
+        utils.logger.error('Failed to get array buffer:', bufferError);
+        return response;
+      }
       
       utils.logger.info('Image data retrieved, size: ' + arrayBuffer.byteLength + ' bytes');
       
@@ -248,7 +265,12 @@
         return processedResponse;
       } catch (error) {
         utils.logger.warn('Image processing failed, using original data:', error);
-        return utils.createResponseFromArrayBuffer(arrayBuffer, response);
+        try {
+          return utils.createResponseFromArrayBuffer(arrayBuffer, response);
+        } catch (fallbackError) {
+          utils.logger.error('Failed to create fallback response:', fallbackError);
+          return response;
+        }
       }
       
     } catch (error) {

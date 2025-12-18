@@ -171,9 +171,16 @@
   } finally {
     try {
       matsToDelete.forEach((m) => {
-        if (m && typeof m.delete === 'function') m.delete()
+        if (m && typeof m.delete === 'function') {
+          try {
+            m.delete()
+          } catch (deleteError) {
+            console.error('[Watermark Pipeline] Error deleting Mat object:', deleteError);
+          }
+        }
       })
-    } catch {
+    } catch (cleanupError) {
+      console.error('[Watermark Pipeline] Error during cleanup:', cleanupError);
     }
   }
 }
