@@ -1,16 +1,11 @@
-// OpenCV injection script that runs in the page context
-// This script requests URLs from the content script via postMessage
-
 function requestUrls() {
   return new Promise((resolve) => {
     let timeoutId = null;
     
-    // Listen for the response
     function handleMessage(event) {
       if (event.source !== window) return;
       
       if (event.data.type === 'OPENCV_URLS_RESPONSE') {
-        // Clean up
         window.removeEventListener('message', handleMessage);
         if (timeoutId) {
           clearTimeout(timeoutId);
@@ -22,10 +17,8 @@ function requestUrls() {
     
     window.addEventListener('message', handleMessage);
     
-    // Request the URLs
     window.postMessage({ type: 'GET_OPENCV_URLS' }, '*');
     
-    // Fallback timeout after 5 seconds
     timeoutId = setTimeout(() => {
       window.removeEventListener('message', handleMessage);
       console.error('Timeout waiting for OpenCV URLs');
@@ -35,17 +28,13 @@ function requestUrls() {
   });
 }
 
-// Main initialization function
 async function initializeOpenCV() {
   console.log('Requesting OpenCV URLs...');
   
-  // Set up Trusted Types policy first, before anything else
   if (window.trustedTypes && window.trustedTypes.createPolicy) {
     try {
-      // Create a default policy for OpenCV to use
       window.trustedTypes.createPolicy('default', {
         createScriptURL: (url) => {
-          // Allow chrome-extension URLs and blob URLs (OpenCV might use them)
           if (url.startsWith('chrome-extension://') || url.startsWith('blob:')) {
             return url;
           }
@@ -53,11 +42,9 @@ async function initializeOpenCV() {
           throw new Error('Invalid script URL');
         },
         createScript: (script) => {
-          // Allow scripts (OpenCV might need to create scripts dynamically)
           return script;
         },
         createHTML: (html) => {
-          // Allow HTML creation
           return html;
         }
       });
@@ -76,7 +63,6 @@ async function initializeOpenCV() {
   
   console.log('OpenCV URLs received:', urls);
   
-  // Configure the Module object before loading opencv.js
   window.Module = {
     locateFile: function (path, scriptDirectory) {
       const wasmUrl = urls.wasmBase + path;
@@ -99,7 +85,6 @@ async function initializeOpenCV() {
         window.cv = cv;
       }
       
-      // Dispatch a custom event to notify that OpenCV is ready
       const event = new CustomEvent('opencvReady', { 
         detail: { cv: cv } 
       });
@@ -107,9 +92,8 @@ async function initializeOpenCV() {
     }
   };
 
-  // Load the main opencv.js script
   const script = document.createElement('script');
-  script.src = urls.opencvJs; // The default policy will handle this
+  script.src = urls.opencvJs;
   
   script.async = true;
   script.defer = true;
@@ -122,5 +106,4 @@ async function initializeOpenCV() {
   document.head.appendChild(script);
 }
 
-// Start initialization
 initializeOpenCV();

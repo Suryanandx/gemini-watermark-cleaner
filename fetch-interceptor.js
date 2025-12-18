@@ -1,14 +1,8 @@
-/**
- * Fetch Interceptor - Pure JavaScript version
- * This file will be injected into Gemini page context
- */
-
 (function() {
   'use strict';
   
   console.log('[Fetch Interceptor] Starting Fetch interceptor initialization');
   
-  // Utility functions
   const utils = {
     shouldProcessImage: function(url, response) {
       try {
@@ -114,7 +108,7 @@
     },
 
     waitForOpenCV: function(timeout) {
-      timeout = timeout || 10000; // Default 10 second timeout
+      timeout = timeout || 10000;
       
       return new Promise(function(resolve, reject) {
         const startTime = Date.now();
@@ -133,11 +127,9 @@
             return;
           }
           
-          // Use requestAnimationFrame for next check
           requestAnimationFrame(checkOpenCV);
         }
         
-        // Start detection
         checkOpenCV();
       });
     },
@@ -169,7 +161,6 @@
     }
   };
 
-  // Default configuration
   const defaultConfig = {
     timeout: 30000,
     outputFormat: 'image/png',
@@ -183,7 +174,6 @@
   let originalFetch;
   let isInterceptorActive = false;
 
-  // Image processor
   async function processImageResponse(response, config) {
     config = config || defaultConfig;
     const startTime = performance.now();
@@ -196,9 +186,8 @@
         return response;
       }
 
-      // Asynchronously wait for OpenCV to be ready
       try {
-        await utils.waitForOpenCV(10000); // 10 second timeout
+        await utils.waitForOpenCV(10000);
       } catch (error) {
         utils.logger.warn('OpenCV not ready, returning original response:', error.message);
         return response;
@@ -269,7 +258,6 @@
     }
   }
 
-  // Create intercepted fetch function
   function createInterceptedFetch() {
     return async function interceptedFetch(input, init) {
       try {
@@ -301,7 +289,6 @@
     };
   }
 
-  // Install interceptor
   function installFetchInterceptor(config) {
     config = config || {};
     
@@ -324,7 +311,6 @@
     utils.logger.info('Fetch interceptor installed successfully');
   }
 
-  // Uninstall interceptor
   function uninstallFetchInterceptor() {
     if (!isInterceptorActive || !originalFetch) {
       utils.logger.warn('Fetch interceptor not installed or already uninstalled');
@@ -337,13 +323,11 @@
     utils.logger.info('Fetch interceptor uninstalled');
   }
 
-  // Update configuration
   function updateInterceptorConfig(config) {
     globalConfig = Object.assign({}, globalConfig, config);
     utils.logger.info('Interceptor configuration updated', config);
   }
 
-  // Get status
   function getInterceptorStatus() {
     return {
       active: isInterceptorActive,
@@ -351,7 +335,6 @@
     };
   }
 
-  // Setup interceptor
   function setupInterceptor() {
     utils.logger.info('Initializing Fetch interceptor');
     
@@ -370,7 +353,6 @@
     });
   }
 
-  // Initialize
   function initializeInterceptor() {
     if (document.readyState === 'loading') {
       document.addEventListener('DOMContentLoaded', setupInterceptor);
@@ -379,7 +361,6 @@
     }
   }
 
-  // Expose global interface
   window.geminiWatermarkCleaner = {
     installInterceptor: installFetchInterceptor,
     uninstallInterceptor: uninstallFetchInterceptor,
@@ -389,15 +370,13 @@
 
   utils.logger.info('Global interface exposed: window.geminiWatermarkCleaner');
 
-  // Wait for dependencies to load before initializing
   function waitForDependencies() {
     let checkCount = 0;
-    const maxChecks = 100; // Maximum 10 seconds of checks
+    const maxChecks = 100;
     
     const checkDependencies = function() {
       checkCount++;
       
-      // Check if watermark processing pipeline is loaded
       if (window.runWatermarkPipeline) {
         utils.logger.info('Dependencies loaded, starting interceptor initialization');
         initializeInterceptor();
@@ -416,7 +395,6 @@
     checkDependencies();
   }
 
-  // Start
   waitForDependencies();
 
 })();
