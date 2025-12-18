@@ -134,6 +134,33 @@
       });
     },
 
+    waitForWatermarkPipeline: function(timeout) {
+      timeout = timeout || 10000;
+      
+      return new Promise(function(resolve, reject) {
+        const startTime = Date.now();
+        
+        function checkPipeline() {
+          if (window.runWatermarkPipeline && typeof window.runWatermarkPipeline === 'function') {
+            utils.logger.info('Watermark pipeline detection successful');
+            resolve(true);
+            return;
+          }
+          
+          const elapsed = Date.now() - startTime;
+          if (elapsed >= timeout) {
+            utils.logger.warn('Watermark pipeline detection timeout (' + timeout + 'ms)');
+            reject(new Error('Watermark pipeline detection timeout'));
+            return;
+          }
+          
+          requestAnimationFrame(checkPipeline);
+        }
+        
+        checkPipeline();
+      });
+    },
+
     createTimeoutPromise: function(promise, timeout) {
       return Promise.race([
         promise,
@@ -187,14 +214,12 @@
       }
 
       try {
-        await utils.waitForOpenCV(10000);
+        await Promise.all([
+          utils.waitForOpenCV(10000),
+          utils.waitForWatermarkPipeline(10000)
+        ]);
       } catch (error) {
-        utils.logger.warn('OpenCV not ready, returning original response:', error.message);
-        return response;
-      }
-      
-      if (!window.runWatermarkPipeline) {
-        utils.logger.warn('Watermark processing pipeline not found, returning original response');
+        utils.logger.warn('Dependencies not ready, returning original response:', error.message);
         return response;
       }
       
@@ -372,13 +397,23 @@
 
   function waitForDependencies() {
     let checkCount = 0;
-    const maxChecks = 100;
+    const maxChecks = 200;
+    let opencvReady = false;
+    let pipelineReady = false;
     
     const checkDependencies = function() {
       checkCount++;
       
-      if (window.runWatermarkPipeline) {
-        utils.logger.info('Dependencies loaded, starting interceptor initialization');
+      if (utils.isOpenCVReady()) {
+        opencvReady = true;
+      }
+      
+      if (window.runWatermarkPipeline && typeof window.runWatermarkPipeline === 'function') {
+        pipelineReady = true;
+      }
+      
+      if (opencvReady && pipelineReady) {
+        utils.logger.info('All dependencies loaded, starting interceptor initialization');
         initializeInterceptor();
         return;
       }
