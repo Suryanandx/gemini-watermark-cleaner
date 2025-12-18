@@ -9,7 +9,12 @@ function requestUrls(retryCount = 0) {
     function handleMessage(event) {
       if (event.source !== window) return;
       
-      if (event.data.type === 'OPENCV_URLS_RESPONSE') {
+      const allowedOrigin = window.location.origin;
+      if (event.origin !== allowedOrigin && event.origin !== 'null') {
+        return;
+      }
+      
+      if (event.data && event.data.type === 'OPENCV_URLS_RESPONSE') {
         if (messageHandler) {
           window.removeEventListener('message', messageHandler);
         }
@@ -24,7 +29,7 @@ function requestUrls(retryCount = 0) {
     messageHandler = handleMessage;
     window.addEventListener('message', messageHandler);
     
-    window.postMessage({ type: 'GET_OPENCV_URLS' }, '*');
+    window.postMessage({ type: 'GET_OPENCV_URLS' }, window.location.origin);
     
     timeoutId = setTimeout(() => {
       if (messageHandler) {

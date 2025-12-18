@@ -188,11 +188,20 @@
   }
 }
 
+  if (!window.geminiWatermarkCleaner) {
+    window.geminiWatermarkCleaner = {};
+  }
+  
+  window.geminiWatermarkCleaner.pipeline = {
+    runWatermarkPipeline: runWatermarkPipeline,
+    getDefaultParams: getDefaultParams,
+    getPipelineConfig: getPipelineConfig,
+    matToImageData: matToImageData
+  };
+  
   window.runWatermarkPipeline = runWatermarkPipeline;
-  window.getDefaultParams = getDefaultParams;
-  window.getPipelineConfig = getPipelineConfig;
-  window.matToImageData = matToImageData;
 
   console.log('[Watermark Pipeline] Watermark processing pipeline loaded to global scope');
 
 })();
+
